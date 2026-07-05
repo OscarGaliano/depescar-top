@@ -6,8 +6,12 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "preview": "vite preview",
     "sync:catalog": "node scripts/sync-catalog.mjs",
     "sync:catalog:meta": "node scripts/sync-catalog.mjs --skip-images"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "dependencies": {
     "react": "18.3.1",
