@@ -10,14 +10,9 @@ import { PRODUCTS, BRANDS } from "../data/products";
 import { CATALOG_SECTIONS } from "../data/sections";
 import { REVIEWS } from "../data/navigation";
 import { ProductCard } from "../components/shop/ProductCard";
-import { CatalogSections } from "../components/shop/CatalogSections";
 import { Countdown } from "../components/shop/Countdown";
 import { Stars } from "../components/shop/Stars";
 import { ScrollReveal } from "../components/effects/ScrollReveal";
-
-const HOME_CATALOG_SECTIONS = CATALOG_SECTIONS.filter(
-  (s) => !["entrega-inmediata", "outlet", "otros"].includes(s.slug),
-);
 
 const TRUST_ICONS = { Truck, Shield, Award, Package };
 const TRUST = [
@@ -157,7 +152,32 @@ export function HomePage() {
             </header>
           </ScrollReveal>
 
-          <CatalogSections sections={HOME_CATALOG_SECTIONS} compact />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+            {CATALOG_SECTIONS.filter((s) => !["entrega-inmediata", "outlet", "otros"].includes(s.slug)).slice(0, 8).map((section, i) => (
+              <ScrollReveal key={section.slug} delay={i * 0.08}>
+                <Link
+                  to={`/tienda?seccion=${section.slug}`}
+                  className="group relative overflow-hidden rounded-sm cursor-pointer block"
+                  style={{ aspectRatio: i < 2 ? "2/3" : "3/4" }}
+                  aria-label={`Sección ${section.full}`}
+                >
+                  <div className="w-full h-full bg-muted">
+                    <img src={section.img} alt={section.full} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                  <div className="absolute inset-0 border border-primary/0 group-hover:border-primary/40 transition-all duration-400 rounded-sm" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="text-[9px] text-primary font-mono tracking-widest uppercase mb-0.5">{section.productCount} productos</div>
+                    <div className="text-base font-bold text-foreground leading-tight">{section.name}</div>
+                    <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="text-[11px] text-primary font-medium">Ver sección</span>
+                      <ArrowRight className="w-3 h-3 text-primary" />
+                    </div>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
       </section>
 

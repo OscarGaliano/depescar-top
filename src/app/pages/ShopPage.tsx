@@ -3,12 +3,17 @@ import { useSearchParams } from "react-router";
 import { SlidersHorizontal, Grid3X3, LayoutList, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { PRODUCTS, BRANDS, MAX_PRICE, getCategoryBySlug } from "../data/products";
-import { getSectionBySlug } from "../data/sections";
+import { getSectionBySlug, CATALOG_SECTIONS } from "../data/sections";
 import { ProductCard } from "../components/shop/ProductCard";
 import { CatalogSections } from "../components/shop/CatalogSections";
+import { SectionGrid } from "../components/shop/SectionGrid";
 import { CategorySidebar } from "../components/shop/CategorySidebar";
 import { filterProducts, sortProducts } from "../components/shop/SectionCatalogView";
 import { ScrollReveal } from "../components/effects/ScrollReveal";
+
+const SHOP_OVERVIEW_SECTIONS = CATALOG_SECTIONS.filter(
+  (s) => !["entrega-inmediata", "outlet", "otros"].includes(s.slug),
+);
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "discount";
 const PAGE_SIZE = 24;
@@ -82,6 +87,7 @@ export function ShopPage() {
         : "Catálogo por secciones";
 
   const showToolbar = showFlatList;
+  const showSidebarFilters = !showSectionsOverview;
 
   return (
     <div className="py-8 px-4 lg:px-8">
@@ -96,7 +102,7 @@ export function ShopPage() {
             <h1 className="text-4xl lg:text-5xl font-bold text-foreground">{pageTitle}</h1>
             <p className="text-muted-foreground mt-2">
               {showSectionsOverview
-                ? `${PRODUCTS.length} productos organizados en secciones`
+                ? `${SHOP_OVERVIEW_SECTIONS.length} secciones · ${PRODUCTS.length} productos`
                 : showSectionGrouped
                   ? `Elige una categoría · ${activeSection?.categories.length ?? 0} disponibles`
                   : `${filtered.length} productos · Equipamiento premium de pesca submarina`}
@@ -109,22 +115,24 @@ export function ShopPage() {
             <div className="sticky top-28 space-y-5">
               <CategorySidebar catFilter={catFilter} sectionFilter={sectionFilter} />
 
-              <div className="rounded-sm border border-border bg-card p-4 shadow-lg shadow-black/10">
-                <h3 className="text-xs font-mono uppercase tracking-widest text-primary mb-3">Marca</h3>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {BRANDS.map(brand => (
-                    <button
-                      key={brand}
-                      onClick={() => setBrandFilter(brandFilter === brand ? null : brand)}
-                      className={`block w-full text-left text-sm py-1 transition-colors ${brandFilter === brand ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                      {brand}
-                    </button>
-                  ))}
+              {showSidebarFilters && (
+                <div className="rounded-sm border border-border bg-card p-4 shadow-lg shadow-black/10">
+                  <h3 className="text-xs font-mono uppercase tracking-widest text-primary mb-3">Marca</h3>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {BRANDS.map(brand => (
+                      <button
+                        key={brand}
+                        onClick={() => setBrandFilter(brandFilter === brand ? null : brand)}
+                        className={`block w-full text-left text-sm py-1 transition-colors ${brandFilter === brand ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                      >
+                        {brand}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {showToolbar && (
+              {showSidebarFilters && showToolbar && (
                 <div className="rounded-sm border border-border bg-card p-4 shadow-lg shadow-black/10">
                   <h3 className="text-xs font-mono uppercase tracking-widest text-primary mb-3">
                     Precio máx: <span className="text-foreground font-mono">€{priceMax}</span>
@@ -214,7 +222,7 @@ export function ShopPage() {
             )}
 
             {showSectionsOverview ? (
-              <CatalogSections />
+              <SectionGrid sections={SHOP_OVERVIEW_SECTIONS} />
             ) : showSectionGrouped && activeSection ? (
               <CatalogSections
                 sections={[activeSection]}
