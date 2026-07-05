@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, LayoutGrid, Fish } from "lucide-react";
 import { PRODUCTS } from "../../data/products";
-import { CATALOG_SECTIONS, getSectionBySlug } from "../../data/sections";
+import { CATALOG_SECTIONS } from "../../data/sections";
 import type { Category } from "../../types/shop";
 
 interface CategorySidebarProps {
@@ -15,11 +15,13 @@ function SectionNavLink({
   active,
   children,
   onNavigate,
+  className = "",
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
   onNavigate?: () => void;
+  className?: string;
 }) {
   return (
     <a
@@ -29,7 +31,7 @@ function SectionNavLink({
         active
           ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
           : "text-foreground/90 hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20"
-      }`}
+      } ${className}`}
     >
       {children}
     </a>
@@ -68,17 +70,12 @@ function CategoryLink({
 }
 
 export function CategorySidebar({ catFilter, sectionFilter, onNavigate }: CategorySidebarProps) {
-  const activeSection = sectionFilter ? getSectionBySlug(sectionFilter) : null;
-  const sectionsToShow = activeSection ? [activeSection] : CATALOG_SECTIONS;
-
   const [openSections, setOpenSections] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     if (sectionFilter) initial.add(sectionFilter);
     else if (catFilter) {
       const match = CATALOG_SECTIONS.find((s) => s.categories.some((c) => c.slug === catFilter));
       if (match) initial.add(match.slug);
-    } else {
-      CATALOG_SECTIONS.slice(0, 5).forEach((s) => initial.add(s.slug));
     }
     return initial;
   });
@@ -111,73 +108,77 @@ export function CategorySidebar({ catFilter, sectionFilter, onNavigate }: Catego
         </span>
       </div>
 
-      <div className="p-4 space-y-5">
-        <div>
-          <h3 className="text-xs font-mono uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-            <Fish className="w-3.5 h-3.5" />
-            Secciones
-          </h3>
-          <ul className="space-y-1.5">
-            <li>
-              <SectionNavLink
-                href="/tienda"
-                active={!catFilter && !sectionFilter}
-                onNavigate={onNavigate}
-              >
-                Todas las secciones
-                <span className="float-right text-[10px] font-mono opacity-80">{PRODUCTS.length}</span>
-              </SectionNavLink>
-            </li>
-            {CATALOG_SECTIONS.map((section) => (
-              <li key={section.slug}>
-                <SectionNavLink
-                  href={`/tienda?seccion=${section.slug}`}
-                  active={sectionFilter === section.slug && !catFilter}
-                  onNavigate={onNavigate}
-                >
-                  {section.name}
-                  <span className="float-right text-[10px] font-mono opacity-80">{section.productCount}</span>
-                </SectionNavLink>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="p-4">
+        <h3 className="text-xs font-mono uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+          <Fish className="w-3.5 h-3.5" />
+          Secciones
+        </h3>
 
-        <div className="border-t border-border pt-4">
-          <h3 className="text-xs font-mono uppercase tracking-widest text-primary mb-3">
-            Categorías
-          </h3>
-          {!catFilter && !sectionFilter && (
-            <p className="text-xs text-foreground/70 bg-muted/50 border border-border rounded-sm px-3 py-2 mb-3">
-              {PRODUCTS.length} productos · {CATALOG_SECTIONS.length} secciones
-            </p>
-          )}
-          <div className="space-y-2 max-h-[36rem] overflow-y-auto pr-1 scrollbar-thin">
-            {sectionsToShow.map((section) => {
-              const isOpen = openSections.has(section.slug);
-              const sectionActive = sectionFilter === section.slug;
-              return (
+        {!catFilter && !sectionFilter && (
+          <p className="text-xs text-foreground/70 bg-muted/50 border border-border rounded-sm px-3 py-2 mb-3">
+            {PRODUCTS.length} productos · {CATALOG_SECTIONS.length} secciones
+          </p>
+        )}
+
+        <ul className="space-y-1.5 max-h-[42rem] overflow-y-auto pr-1 scrollbar-thin">
+          <li>
+            <SectionNavLink
+              href="/tienda"
+              active={!catFilter && !sectionFilter}
+              onNavigate={onNavigate}
+            >
+              Todas las secciones
+              <span className="float-right text-[10px] font-mono opacity-80">{PRODUCTS.length}</span>
+            </SectionNavLink>
+          </li>
+
+          {CATALOG_SECTIONS.map((section) => {
+            const isOpen = openSections.has(section.slug);
+            const sectionActive = sectionFilter === section.slug && !catFilter;
+            const hasActiveCat = Boolean(catFilter && section.categories.some((c) => c.slug === catFilter));
+
+            return (
+              <li key={section.slug}>
                 <div
-                  key={section.slug}
-                  className={`rounded-sm overflow-hidden border-2 transition-colors ${
-                    sectionActive ? "border-primary/50 shadow-md shadow-primary/10" : "border-border"
+                  className={`rounded-sm overflow-hidden border transition-colors ${
+                    sectionActive || hasActiveCat
+                      ? "border-primary/50 shadow-md shadow-primary/10"
+                      : "border-border"
                   }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(section.slug)}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-3 text-left transition-colors ${
-                      sectionActive ? "bg-primary/15" : "bg-muted/40 hover:bg-primary/10"
-                    }`}
-                  >
-                    <span className="text-sm font-semibold text-foreground truncate">
+                  <div className="flex items-stretch">
+                    <SectionNavLink
+                      href={`/tienda?seccion=${section.slug}`}
+                      active={sectionActive}
+                      onNavigate={() => {
+                        setOpenSections((prev) => new Set(prev).add(section.slug));
+                        onNavigate?.();
+                      }}
+                      className="flex-1 min-w-0 rounded-none"
+                    >
                       {section.name}
-                    </span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-primary flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {isOpen && (
+                      <span className="float-right text-[10px] font-mono opacity-80">{section.productCount}</span>
+                    </SectionNavLink>
+                    {section.categories.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(section.slug)}
+                        aria-expanded={isOpen}
+                        aria-label={`${isOpen ? "Ocultar" : "Mostrar"} categorías de ${section.name}`}
+                        className={`flex-shrink-0 px-2.5 border-l transition-colors ${
+                          sectionActive || hasActiveCat
+                            ? "border-primary/30 bg-primary/10 hover:bg-primary/20"
+                            : "border-border bg-muted/40 hover:bg-primary/10"
+                        }`}
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 text-primary transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {isOpen && section.categories.length > 0 && (
                     <ul className="px-2 py-2 space-y-1 border-t border-border bg-background/80">
                       {section.categories.map((cat) => (
                         <CategoryLink
@@ -191,10 +192,10 @@ export function CategorySidebar({ catFilter, sectionFilter, onNavigate }: Catego
                     </ul>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );

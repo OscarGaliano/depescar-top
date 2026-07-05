@@ -7,7 +7,7 @@ import { getSectionBySlug } from "../data/sections";
 import { ProductCard } from "../components/shop/ProductCard";
 import { CatalogSections } from "../components/shop/CatalogSections";
 import { CategorySidebar } from "../components/shop/CategorySidebar";
-import { SectionCatalogView, filterProducts, sortProducts } from "../components/shop/SectionCatalogView";
+import { filterProducts, sortProducts } from "../components/shop/SectionCatalogView";
 import { ScrollReveal } from "../components/effects/ScrollReveal";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "discount";
@@ -81,7 +81,7 @@ export function ShopPage() {
         ? activeSection.full
         : "Catálogo por secciones";
 
-  const showToolbar = !showSectionsOverview;
+  const showToolbar = showFlatList;
 
   return (
     <div className="py-8 px-4 lg:px-8">
@@ -98,7 +98,7 @@ export function ShopPage() {
               {showSectionsOverview
                 ? `${PRODUCTS.length} productos organizados en secciones`
                 : showSectionGrouped
-                  ? `${activeSection?.productCount ?? 0} productos clasificados por categoría`
+                  ? `Elige una categoría · ${activeSection?.categories.length ?? 0} disponibles`
                   : `${filtered.length} productos · Equipamiento premium de pesca submarina`}
             </p>
           </div>
@@ -216,12 +216,10 @@ export function ShopPage() {
             {showSectionsOverview ? (
               <CatalogSections />
             ) : showSectionGrouped && activeSection ? (
-              <SectionCatalogView
-                section={activeSection}
-                sort={sort}
-                brandFilter={brandFilter}
-                priceMax={priceMax}
-                queryFilter={queryFilter}
+              <CatalogSections
+                sections={[activeSection]}
+                showAllCategories
+                hideSectionHeader
               />
             ) : filtered.length === 0 ? (
               <div className="text-center py-20">

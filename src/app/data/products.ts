@@ -79,3 +79,13 @@ export function getProductAlt(slug: string) {
 export function getCategoryBySlug(slug: string) {
   return ALL_CATEGORIES.find((c) => c.slug === slug);
 }
+
+/** Imagen representativa para tarjetas de categoría (producto real > imagen catálogo > fallback) */
+export function getCategoryCardImage(cat: Category, sectionFallback?: string): string {
+  if (cat.img.startsWith("/catalog/images/")) return cat.img;
+
+  const product = PRODUCTS.find((p) => p.catSlug === cat.slug);
+  if (product?.img) return product.img;
+
+  return sectionFallback ?? cat.img;
+}
